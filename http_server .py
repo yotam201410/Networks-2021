@@ -69,7 +69,6 @@ def handle_client_request(resource):
     else:
         data = get_file_data(filename)
         # TO DO: send 302 redirection response
-        # TO DO: extract requested file type from URL (html, jpg etc)
         filetype = url[url.find(".")::]
         http_header = ""
         if filetype.lower() == 'html':
@@ -84,8 +83,6 @@ def handle_client_request(resource):
             http_header = "HTTP/1.1 200 OK \r\n" + f"Content-Length: {len(data)}\r\n" + "Content-Type: image/ico\r\n"
         elif filetype.lower() == "gif":
             http_header = "HTTP/1.1 200 OK \r\n" + f"Content-Length: {len(data)}\r\n" + "Content-Type: image/gif\r\n"
-        # TO DO: read the data from the file
-
         client_socket.send(http_header.encode() + data)
 
 
@@ -119,7 +116,7 @@ def handle_client():
                 send404()
                 break
         except Exception as e:
-            send500(e)
+            send500(str(e))
             break
     print('Closing connection...')
     print('Server Still Up And Running')
