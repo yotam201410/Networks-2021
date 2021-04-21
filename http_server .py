@@ -37,8 +37,24 @@ def send500(message="INTERNAL_SERVER_ERROR"):
     client_socket.send(f"HTTP/1.1 500 {message}  \r\n".encode())
 
 
-def get_next_number(number:str):
+def get_next_number(number: str):
     return str(int(number) + 1)
+
+
+def get_parameters(url: str):
+    url = url[url.find("?")+1: url.find(" HTTP/1.1")]
+    url = url.split("&")
+    parameters = {}
+    for i in url:
+        parameters[i[0:i.find("=")]] = i[i.find("=") + 1::]
+    return parameters if parameters != {} else None
+
+
+def get_area(parameters):
+    width = float(parameters["width"])
+    height = float(parameters["height"])
+    return str(width * height/2)
+
 
 
 def handle_client_request(resource):
@@ -61,11 +77,22 @@ def handle_client_request(resource):
         filename = url
     if url[url.find("/") + 1:url.find("?")] == "calculate-next":
         try:
-            data = get_next_number(url[url.find("=") + 1:url.find(" HTTP/1.1")])
+            data = get_next_number(get_parameters(url)["num"])
             http_header = "HTTP/1.1 200 OK \r\n" + f"Content-Length: {len(data)}\r\n" + "Content-Type: text/plain\r\n"
             client_socket.send(http_header.encode() + data.encode())
         except ValueError:
             send404("the input can only be numbers")
+    elif url[url.find("/") + 1:url.find("?")] == "calculate-area":
+        try:
+            parameters = get_parameters(url)
+            data = get_area(parameters)
+            http_header = "HTTP/1.1 200 OK \r\n" + f"Content-Length: {len(data)}\r\n" + "Content-Type: text/plain\r\n"
+            client_socket.send(http_header.encode() + data.encode())
+        except ValueError:
+            send404("the input can only be numbers")
+        except KeyError:
+            send404("not enough parameter")
+
     else:
         data = get_file_data(filename)
         # TO DO: send 302 redirection response
