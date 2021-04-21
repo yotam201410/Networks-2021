@@ -42,7 +42,7 @@ def get_next_number(number: str):
 
 
 def get_parameters(url: str):
-    url = url[url.find("?")+1: url.find(" HTTP/1.1")]
+    url = url[url.find("?") + 1: url.find(" HTTP/1.1")]
     url = url.split("&")
     parameters = {}
     for i in url:
@@ -53,8 +53,7 @@ def get_parameters(url: str):
 def get_area(parameters):
     width = float(parameters["width"])
     height = float(parameters["height"])
-    return str(width * height/2)
-
+    return str(width * height / 2)
 
 
 def handle_client_request(resource):
