@@ -6,14 +6,14 @@
 
 # TO DO: import modules
 import socket
-
+import logging
 
 # TO DO: set constants
 IP = "127.0.0.1"
 PORT = 80
 SOCKET_TIMEOUT = 30
-SOURCE_FOLDER = "webroot/webroot"
-client_socket = None
+SOURCE_FOLDER = "webroot"
+client_socket = socket.socket()
 
 
 def get_file_data(filename):
@@ -22,19 +22,22 @@ def get_file_data(filename):
         return f.read()
 
 
-def send404():
-    client_socket.send("HTTP/1.1 404 NOT_FOUND \r\n".encode())
+def send404(message="NOT_FOUND"):
+    logging.warning(f"ERROR 404: {message}")
+    client_socket.send(f"HTTP/1.1 404 {message} \r\n".encode())
 
 
-def send403():
-    client_socket.send("HTTP/1.1 403 FORBIDDEN \r\n".encode())
+def send403(message="FORBIDDEN"):
+    logging.warning(f"ERROR 403: {message}")
+    client_socket.send(f"HTTP/1.1 403 {message} \r\n".encode())
 
 
-def send500():
-    client_socket.send("HTTP/1.1 500 INTERNAL_SERVER_ERROR  \r\n".encode())
+def send500(message="INTERNAL_SERVER_ERROR"):
+    logging.error(f"ERROR 500: {message}")
+    client_socket.send(f"HTTP/1.1 500 {message}  \r\n".encode())
 
 
-def get_next_number(number):  # string
+def get_next_number(number:str):
     return str(int(number) + 1)
 
 
@@ -58,11 +61,11 @@ def handle_client_request(resource):
         filename = url
     if url[url.find("/") + 1:url.find("?")] == "calculate-next":
         try:
-            data = get_next_number(url[url.find("=") + 1])
+            data = get_next_number(url[url.find("=") + 1:url.find(" HTTP/1.1")])
             http_header = "HTTP/1.1 200 OK \r\n" + f"Content-Length: {len(data)}\r\n" + "Content-Type: text/plain\r\n"
             client_socket.send(http_header.encode() + data.encode())
         except ValueError:
-            send404()
+            send404("the input can only be numbers")
     else:
         data = get_file_data(filename)
         # TO DO: send 302 redirection response
@@ -115,8 +118,8 @@ def handle_client():
                 print('Error: Not a valid HTTP request')
                 send404()
                 break
-        except:
-            send500()
+        except Exception as e:
+            send500(e)
             break
     print('Closing connection...')
     print('Server Still Up And Running')
