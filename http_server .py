@@ -7,6 +7,7 @@
 # TO DO: import modules
 import socket
 import logging
+import math
 
 # TO DO: set constants
 IP = "127.0.0.1"
@@ -14,6 +15,8 @@ PORT = 80
 SOCKET_TIMEOUT = 30
 SOURCE_FOLDER = "webroot"
 client_socket = socket.socket()
+DEFAULT_URL = f"{SOURCE_FOLDER}/index.html"
+FILES_SOURCE_FOLDER = r"webroot\uploads\files uploaded"
 
 
 def get_file_data(filename):
@@ -56,8 +59,7 @@ def get_area(parameters):
     return str(width * height / 2)
 
 
-def handle_client_request(resource):
-    DEFAULT_URL = f"{SOURCE_FOLDER}/index.html"
+def handle_client_get_request(resource):
     """ Check the required resource, generate proper HTTP response and send to client"""
     # TO DO : add code that given a resource (URL and parameters) generates the proper response
     if resource == ' ':
@@ -91,25 +93,45 @@ def handle_client_request(resource):
             send404("the input can only be numbers")
         except KeyError:
             send404("not enough parameter")
+    elif url[url.find("/") + 1:url.find("?")] == "image":
+        print(get_parameters(url))
+        filename = get_parameters(url)["image-name"]+".jpg"
+        data = get_file_data(f"{FILES_SOURCE_FOLDER}\{filename}")
+        print(data)
+        http_header = "HTTP/1.1 200 OK \r\n" + f"Content-Length: {len(data)}\r\n" + "Content-Type: image/jpeg\r\n"
+        client_socket.send(http_header.encode() + data)
 
     else:
         data = get_file_data(filename)
         # TO DO: send 302 redirection response
-        filetype = url[url.find(".")::]
+        file_type = url[url.find(".")::]
         http_header = ""
-        if filetype.lower() == 'html':
+        if file_type.lower() == 'html':
             http_header = "HTTP/1.1 200 OK \r\n" + f"Content-Length: {len(data)}\r\n" + "Content-Type: text/html\r\n"
-        elif filetype.lower() == 'jpg':
+        elif file_type.lower() == 'jpg':
             http_header = "HTTP/1.1 200 OK \r\n" + f"Content-Length: {len(data)}\r\n" + "Content-Type: image/jpeg\r\n"
-        elif filetype.lower() == "js":
+        elif file_type.lower() == "js":
             http_header = "HTTP/1.1 200 OK \r\n" + f"Content-Length: {len(data)}\r\n" + "Content-Type: text/javascript; charset=UTF-8\r\n"
-        elif filetype.lower() == "css":
+        elif file_type.lower() == "css":
             http_header = "HTTP/1.1 200 OK \r\n" + f"Content-Length: {len(data)}\r\n" + "Content-Type: text/css\r\n"
-        elif filetype.lower() == "ico":
+        elif file_type.lower() == "ico":
             http_header = "HTTP/1.1 200 OK \r\n" + f"Content-Length: {len(data)}\r\n" + "Content-Type: image/ico\r\n"
-        elif filetype.lower() == "gif":
+        elif file_type.lower() == "gif":
             http_header = "HTTP/1.1 200 OK \r\n" + f"Content-Length: {len(data)}\r\n" + "Content-Type: image/gif\r\n"
         client_socket.send(http_header.encode() + data)
+
+
+def handle_client_post_request(resource):
+    filename = get_parameters(resource)["file-name"]
+    contentLength = float(resource[resource.find("Content-Length: ") + len("Content-Length: "):resource.find("\r",
+                                                                                                             resource.find(
+                                                                                                                 "Content-Length: "))])
+    data = "".encode()
+    for i in range(math.ceil(contentLength / 1024)):
+        data += client_socket.recv(1024)
+    with open(f"{FILES_SOURCE_FOLDER}\{filename}", 'wb') as f:
+        f.write(data)
+    client_socket.send("HTTP/1.1 200 OK".encode())
 
 
 def validate_http_request(request):
@@ -117,25 +139,33 @@ def validate_http_request(request):
     request = request.decode()
     if request[0:3] == "GET":
         if request[0:14] == "GET / HTTP/1.1":
-            return True, " "
+            return "GET", True, " "
         else:
-            return True, request[4:request.find("HTTP/1.1")]
+            return "GET", True, request[4:request.find("HTTP/1.1")]
+    if request[0:4] == "POST":
+        if request[0:14] == "POST / HTTP/1.1":
+            return "POST", True, " "
+        else:
+            return "POST", True, request
     else:
-        return False, ""
+        return None, False, ""
 
 
 def handle_client():
     """ Handles client requests: verifies client's requests are legal HTTP, calls function to handle the requests """
     print('Client connected')
     while True:
-        # TO DO: insert code that receives client request
+        #TO DO: insert code that receives client request
         try:
             client_request = client_socket.recv(1024)
             print(client_request.decode())
-            valid_http, resource = validate_http_request(client_request)
+            kind, valid_http, resource = validate_http_request(client_request)
             if valid_http:
                 print('Got a valid HTTP request')
-                handle_client_request(resource)
+                if kind == "GET":
+                    handle_client_get_request(resource)
+                else:
+                    handle_client_post_request(resource)
                 break
             else:
                 print('Error: Not a valid HTTP request')

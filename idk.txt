@@ -1,0 +1,18 @@
+POST /upload?file-name=graph.ico HTTP/1.1
+Host: 127.0.0.1
+Connection: keep-alive
+Content-Length: 766
+sec-ch-ua: " Not A;Brand";v="99", "Chromium";v="90", "Google Chrome";v="90"
+Accept: */*
+X-Requested-With: XMLHttpRequest
+sec-ch-ua-mobile: ?0
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.93 Safari/537.36
+Content-Type: text/plain
+Origin: http://127.0.0.1
+Sec-Fetch-Site: same-origin
+Sec-Fetch-Mode: cors
+Sec-Fetch-Dest: empty
+Referer: http://127.0.0.1/
+Accept-Encoding: gzip, deflate, br
+Accept-Language: he-IL,he;q=0.9,en-US;q=0.8,en;q=0.7
+
