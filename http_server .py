@@ -79,7 +79,7 @@ def handle_client_get_request(resource):
     if url[url.find("/") + 1:url.find("?")] == "calculate-next":
         try:
             data = get_next_number(get_parameters(url)["num"])
-            http_header = "HTTP/1.1 200 OK \r\n" + f"Content-Length: {len(data)}\r\n" + "Content-Type: text/plain\r\n"
+            http_header = "HTTP/1.1 200 OK \r\n" + f"Content-Length: {len(data)}\r\n" + "Content-Type: text/plain\r\n\r\n"
             client_socket.send(http_header.encode() + data.encode())
         except ValueError:
             send404("the input can only be numbers")
@@ -87,7 +87,7 @@ def handle_client_get_request(resource):
         try:
             parameters = get_parameters(url)
             data = get_area(parameters)
-            http_header = "HTTP/1.1 200 OK \r\n" + f"Content-Length: {len(data)}\r\n" + "Content-Type: text/plain\r\n"
+            http_header = "HTTP/1.1 200 OK \r\n" + f"Content-Length: {len(data)}\r\n" + "Content-Type: text/plain\r\n\r\n"
             client_socket.send(http_header.encode() + data.encode())
         except ValueError:
             send404("the input can only be numbers")
@@ -105,17 +105,17 @@ def handle_client_get_request(resource):
         file_type = url[url.find(".")::]
         http_header = ""
         if file_type.lower() == 'html':
-            http_header = "HTTP/1.1 200 OK \r\n" + f"Content-Length: {len(data)}\r\n" + "Content-Type: text/html\r\n"
+            http_header = "HTTP/1.1 200 OK \r\n" + f"Content-Length: {len(data)}\r\n" + "Content-Type: text/html\r\n\r\n"
         elif file_type.lower() == 'jpg':
-            http_header = "HTTP/1.1 200 OK \r\n" + f"Content-Length: {len(data)}\r\n" + "Content-Type: image/jpeg\r\n"
+            http_header = "HTTP/1.1 200 OK \r\n" + f"Content-Length: {len(data)}\r\n" + "Content-Type: image/jpeg\r\n\r\n"
         elif file_type.lower() == "js":
-            http_header = "HTTP/1.1 200 OK \r\n" + f"Content-Length: {len(data)}\r\n" + "Content-Type: text/javascript; charset=UTF-8\r\n"
+            http_header = "HTTP/1.1 200 OK \r\n" + f"Content-Length: {len(data)}\r\n" + "Content-Type: text/javascript; charset=UTF-8\r\n\r\n"
         elif file_type.lower() == "css":
-            http_header = "HTTP/1.1 200 OK \r\n" + f"Content-Length: {len(data)}\r\n" + "Content-Type: text/css\r\n"
+            http_header = "HTTP/1.1 200 OK \r\n" + f"Content-Length: {len(data)}\r\n" + "Content-Type: text/css\r\n\r\n"
         elif file_type.lower() == "ico":
-            http_header = "HTTP/1.1 200 OK \r\n" + f"Content-Length: {len(data)}\r\n" + "Content-Type: image/ico\r\n"
+            http_header = "HTTP/1.1 200 OK \r\n" + f"Content-Length: {len(data)}\r\n" + "Content-Type: image/ico\r\n\r\n"
         elif file_type.lower() == "gif":
-            http_header = "HTTP/1.1 200 OK \r\n" + f"Content-Length: {len(data)}\r\n" + "Content-Type: image/gif\r\n"
+            http_header = "HTTP/1.1 200 OK \r\n" + f"Content-Length: {len(data)}\r\n" + "Content-Type: image/gif\r\n\r\n"
         client_socket.send(http_header.encode() + data)
 
 
