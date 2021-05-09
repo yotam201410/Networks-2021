@@ -12,7 +12,7 @@ import math
 # TO DO: set constants
 IP = "127.0.0.1"
 PORT = 80
-SOCKET_TIMEOUT = 30
+SOCKET_TIMEOUT = 300
 SOURCE_FOLDER = "webroot"
 client_socket = socket.socket()
 DEFAULT_URL = f"{SOURCE_FOLDER}/index.html"
@@ -94,11 +94,9 @@ def handle_client_get_request(resource):
         except KeyError:
             send404("not enough parameter")
     elif url[url.find("/") + 1:url.find("?")] == "image":
-        print(get_parameters(url))
-        filename = get_parameters(url)["image-name"]+".jpg"
-        data = get_file_data(f"{FILES_SOURCE_FOLDER}\{filename}")
-        print(data)
-        http_header = "HTTP/1.1 200 OK \r\n" + f"Content-Length: {len(data)}\r\n" + "Content-Type: image/jpeg\r\n"
+        filename = get_parameters(url)["image-name"] + ".jpg"
+        data = get_file_data(fr"{FILES_SOURCE_FOLDER}\{filename}")
+        http_header = "HTTP/1.1 200 OK\r\n" + f"Content-Length: {len(data)}\r\n" + "Content-Type: image/jpeg\r\n\r\n"
         client_socket.send(http_header.encode() + data)
 
     else:
@@ -155,7 +153,7 @@ def handle_client():
     """ Handles client requests: verifies client's requests are legal HTTP, calls function to handle the requests """
     print('Client connected')
     while True:
-        #TO DO: insert code that receives client request
+        # TO DO: insert code that receives client request
         try:
             client_request = client_socket.recv(1024)
             print(client_request.decode())
