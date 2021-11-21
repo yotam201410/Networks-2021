@@ -27,17 +27,22 @@ def get_file_data(filename):
 
 def send404(message="NOT_FOUND"):
     logging.warning(f"ERROR 404: {message}")
-    client_socket.send(f"HTTP/1.1 404 {message} \r\n".encode())
+    client_socket.send(f"HTTP/1.1 404 {message}\r\n\r\n".encode())
 
 
 def send403(message="FORBIDDEN"):
     logging.warning(f"ERROR 403: {message}")
-    client_socket.send(f"HTTP/1.1 403 {message} \r\n".encode())
+    client_socket.send(f"HTTP/1.1 403 {message}\r\n\r\n".encode())
 
 
 def send500(message="INTERNAL_SERVER_ERROR"):
     logging.error(f"ERROR 500: {message}")
-    client_socket.send(f"HTTP/1.1 500 {message}  \r\n".encode())
+    client_socket.send(f"HTTP/1.1 500 {message}\r\n\r\n".encode())
+
+
+def send302(message="REDIRECTION"):
+    logging.error(f"ERROR 302: {message}")
+    client_socket.send(f"HTTP/1.1 302 {message}\r\nLocation: http://127.0.0.1\r\n\r\n".encode())
 
 
 def get_next_number(number: str):
@@ -98,7 +103,6 @@ def handle_client_get_request(resource):
         data = get_file_data(fr"{FILES_SOURCE_FOLDER}\{filename}")
         http_header = "HTTP/1.1 200 OK\r\n" + f"Content-Length: {len(data)}\r\n" + "Content-Type: image/jpeg\r\n\r\n"
         client_socket.send(http_header.encode() + data)
-
     else:
         data = get_file_data(filename)
         # TO DO: send 302 redirection response
@@ -121,9 +125,7 @@ def handle_client_get_request(resource):
 
 def handle_client_post_request(resource):
     filename = get_parameters(resource)["file-name"]
-    contentLength = float(resource[resource.find("Content-Length: ") + len("Content-Length: "):resource.find("\r",
-                                                                                                             resource.find(
-                                                                                                                 "Content-Length: "))])
+    contentLength = float(resource[resource.find("Content-Length: ") + len("Content-Length: "):resource.find("\r", resource.find("Content-Length: "))])
     data = "".encode()
     for i in range(math.ceil(contentLength / 1024)):
         data += client_socket.recv(1024)
@@ -170,8 +172,11 @@ def handle_client():
                 send404()
                 break
         except Exception as e:
-            send500(str(e))
-            break
+            if isinstance(e,FileNotFoundError):
+                send302()
+            else:
+                send500(str(e))
+                break
     print('Closing connection...')
     print('Server Still Up And Running')
     client_socket.close()
